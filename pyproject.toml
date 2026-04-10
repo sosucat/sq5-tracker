@@ -1,0 +1,19 @@
+[project]
+authors = [{name = "sosucat", email = "pengu1n.i843@gmail.com"}]
+dependencies = ["httpx>=0.27.0", "selectolax>=0.3.0", "python-dotenv>=1.0.0"]
+name = "sq5-tracker"
+requires-python = ">= 3.11"
+version = "0.1.0"
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["win-64"]
+
+[tool.pixi.pypi-dependencies]
+sq5_tracker = { path = ".", editable = true }
+
+[tool.pixi.tasks]
