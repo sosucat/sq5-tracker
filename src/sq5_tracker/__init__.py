@@ -2,17 +2,11 @@
 
 from __future__ import annotations
 
-import os
-import smtplib
 from dataclasses import dataclass
-from email.message import EmailMessage
 from typing import ClassVar
 
 import httpx
-from dotenv import load_dotenv
 from selectolax.parser import HTMLParser
-
-load_dotenv()
 
 
 @dataclass
@@ -147,37 +141,20 @@ class ApartmentScraper:
 
             return None
 
-    def send_price_email(self, plan_name: str, price: str | None, recipient: str | None = None) -> bool:
-        """Send the scraped price via email."""
-        recipient_email = recipient or os.getenv("RECIPIENT_EMAIL")
-        if not recipient_email:
-            print("No recipient email configured")
+    def send_price_via_ntfy(self, plan_name: str, price: str | None, topic: str = "sq5_tracker_v0") -> bool:
+        """Send the scraped price via ntfy.sh notification."""
+        if not price:
             return False
 
-        sender_email = os.getenv("SENDER_EMAIL")
-        sender_password = os.getenv("SENDER_PASSWORD")
-        smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-        smtp_port = int(os.getenv("SMTP_PORT", "587"))
-
-        if not sender_email or not sender_password:
-            print("Email credentials not configured")
-            return False
-
-        msg = EmailMessage()
-        msg["Subject"] = f"SQ5 Tracker: {plan_name} Price Update"
-        msg["From"] = sender_email
-        msg["To"] = recipient_email
-        msg.set_content(f"The current price for {plan_name} is: {price}")
+        url = f"https://ntfy.sh/{topic}"
+        message = f"C3 Standard price: {price}"
 
         try:
-            with smtplib.SMTP(smtp_server, smtp_port) as server:
-                server.starttls()
-                server.login(sender_email, sender_password)
-                server.send_message(msg)
-            print(f"Email sent to {recipient_email}")
+            self.client.post(url, data=message.encode("utf-8"))
+            print(f"Notification sent to {topic}")
             return True
         except Exception as e:
-            print(f"Failed to send email: {e}")
+            print(f"Failed to send notification: {e}")
             return False
 
 
@@ -207,9 +184,9 @@ def main() -> None:
         print("-" * 40)
         print(f"C3 Standard current price: {c3_price}")
 
-        # Send price via email
+        # Send price via ntfy
         if c3_price:
-            scraper.send_price_email("C3 Standard", c3_price)
+            scraper.send_price_via_ntfy("C3 Standard", c3_price)
 
     except httpx.HTTPError as e:
         print(f"HTTP error occurred: {e}")
