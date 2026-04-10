@@ -18,11 +18,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install pixi
-        uses: astral-sh/setup-pixi@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
 
-      - name: Install dependencies
-        run: pixi install
-
-      - name: Run scraper and send notification
-        run: pixi run python ./src/sq5_tracker/__init__.py
+      - name: Install dependencies and run
+        run: |
+          uv sync
+          uv run python ./src/sq5_tracker/__init__.py
